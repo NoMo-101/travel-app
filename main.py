@@ -1,7 +1,11 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from typing import Optional
+from database import SessionLocal, Base, engine
+from models import User
 
+
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
