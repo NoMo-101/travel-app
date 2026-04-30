@@ -9,3 +9,4 @@ class User(Base):
     age = Column(Integer)
     city = Column(String)
     email = Column(String, unique=True, index=True)
+    preferences = Column(String)  # Store as JSON string for simplicity
