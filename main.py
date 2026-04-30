@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException
 from pydantic import BaseModel
 from typing import Optional
 from database import SessionLocal, Base, engine
-from models import User
+from models import User, Trip
 
 
 
