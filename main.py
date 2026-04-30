@@ -45,42 +45,6 @@ def root():
 def health():
     return {"status": "ok"}
 
-@app.post("/users/{user_id}/trips")
-def create_trip(trip: TripRequest, user_id: int, db: SessionLocal = Depends(get_db)):
-    user = db.query(User).filter(User.id == user_id).first()
-    if user:
-        user_trips = Trip(
-            user_id = user_id,
-            destination = trip.destination,
-            budget_amount = trip.budget_amount,
-            budget_currency = trip.budget_currency,
-            duration = trip.duration,
-            cities = trip.cities,
-            activities = trip.activities,
-            group_size = trip.group_size,
-            travelers = trip.travelers,
-            transportation = trip.transportation,
-            notes = trip.notes
-        )
-        db.add(user_trips)
-        db.commit()
-        db.refresh(user_trips)
-        return {
-            "destination": trip.destination,
-            "budget_amount": trip.budget_amount,
-            "budget_currency": trip.budget_currency,
-            "duration": trip.duration,
-            "cities": trip.cities,
-            "activities": trip.activities,
-            "group_size": trip.group_size,
-            "transportation": trip.transportation,
-            "notes": trip.notes,
-            "message": f"Planning your {trip.duration} day trip to {trip.destination}!"
-        }
-    else:
-        raise HTTPException(status_code=404, detail="User not found")
-    
-
 @app.post("/users/create")
 def create_user(user: UserProfile, db: SessionLocal = Depends(get_db)):
     db_user = User(
@@ -145,3 +109,54 @@ def delete_user(user_id: int, db: SessionLocal = Depends(get_db)):
     else:
         raise HTTPException(status_code=404, detail="User not found")
     
+@app.post("/users/{user_id}/trips")
+def create_trip(trip: TripRequest, user_id: int, db: SessionLocal = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if user:
+        user_trips = Trip(
+            user_id = user_id,
+            destination = trip.destination,
+            budget_amount = trip.budget_amount,
+            budget_currency = trip.budget_currency,
+            duration = trip.duration,
+            cities = trip.cities,
+            activities = trip.activities,
+            group_size = trip.group_size,
+            travelers = trip.travelers,
+            transportation = trip.transportation,
+            notes = trip.notes
+        )
+        db.add(user_trips)
+        db.commit()
+        db.refresh(user_trips)
+        return {
+            "destination": trip.destination,
+            "budget_amount": trip.budget_amount,
+            "budget_currency": trip.budget_currency,
+            "duration": trip.duration,
+            "cities": trip.cities,
+            "activities": trip.activities,
+            "group_size": trip.group_size,
+            "transportation": trip.transportation,
+            "notes": trip.notes,
+            "message": f"Planning your {trip.duration} day trip to {trip.destination}!"
+        }
+    else:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+@app.get("/users/{user_id}/trips")
+def get_trips(user_id: int, db: SessionLocal = Depends(get_db)):
+    trips = db.query(Trip).filter(Trip.user_id == user_id).all()
+    if trips:
+        return [
+            {
+                "id": trip.id,
+                "destination": trip.destination,
+                "duration": trip.duration,
+                "status": trip.status,
+                "created_at": str(trip.created_at)
+            }
+            for trip in trips
+        ]
+    else:
+        raise HTTPException(status_code=404, detail="No trips found")
