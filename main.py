@@ -19,8 +19,16 @@ def get_db():
 
 class TripRequest(BaseModel):
     destination: str
-    days: int
-    budget: str
+    budget_amount: float
+    budget_currency: str
+    duration: int
+    cities: str
+    activities: str
+    group_size: int
+    travelers: str
+    transportation: str
+    notes: str
+
 
 class UserProfile(BaseModel):
     name: str
@@ -37,14 +45,41 @@ def root():
 def health():
     return {"status": "ok"}
 
-@app.post("/trips/plan")
-def plan_trip(trip: TripRequest):
-    return {
-        "destination": trip.destination,
-        "days": trip.days,
-        "budget": trip.budget,
-        "message": f"Planning your {trip.days} day trip to {trip.destination}!"
-    }
+@app.post("/users/{user_id}/trips")
+def create_trip(trip: TripRequest, user_id: int, db: SessionLocal = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if user:
+        user_trips = Trip(
+            user_id = user_id,
+            destination = trip.destination,
+            budget_amount = trip.budget_amount,
+            budget_currency = trip.budget_currency,
+            duration = trip.duration,
+            cities = trip.cities,
+            activities = trip.activities,
+            group_size = trip.group_size,
+            travelers = trip.travelers,
+            transportation = trip.transportation,
+            notes = trip.notes
+        )
+        db.add(user_trips)
+        db.commit()
+        db.refresh(user_trips)
+        return {
+            "destination": trip.destination,
+            "budget_amount": trip.budget_amount,
+            "budget_currency": trip.budget_currency,
+            "duration": trip.duration,
+            "cities": trip.cities,
+            "activities": trip.activities,
+            "group_size": trip.group_size,
+            "transportation": trip.transportation,
+            "notes": trip.notes,
+            "message": f"Planning your {trip.duration} day trip to {trip.destination}!"
+        }
+    else:
+        raise HTTPException(status_code=404, detail="User not found")
+    
 
 @app.post("/users/create")
 def create_user(user: UserProfile, db: SessionLocal = Depends(get_db)):
@@ -109,3 +144,4 @@ def delete_user(user_id: int, db: SessionLocal = Depends(get_db)):
         }
     else:
         raise HTTPException(status_code=404, detail="User not found")
+    
