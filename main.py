@@ -22,12 +22,12 @@ class TripRequest(BaseModel):
     budget_amount: float
     budget_currency: str
     duration: int
-    cities: str
-    activities: str
+    cities: Optional[str] = None
+    activities: Optional[str] = None
     group_size: int
-    travelers: str
-    transportation: str
-    notes: str
+    travelers: Optional[str] = None
+    transportation: Optional[str] = None
+    notes: Optional[str] = None
 
 
 class UserProfile(BaseModel):
@@ -80,28 +80,28 @@ def get_user(user_id: int, db: SessionLocal = Depends(get_db)):
 
 @app.put("/users/{update}")
 def update_user(user_id: int, user: UserProfile, db: SessionLocal = Depends(get_db)):
-    existing_user = db.query(User).filter(User.id == user_id).first()
-    if existing_user:
-        existing_user.name = user.name
-        existing_user.age = user.age
-        existing_user.city = user.city
-        existing_user.email = user.email
-        existing_user.preferences = str(user.preferences)
+    existing_user_update = db.query(User).filter(User.id == user_id).first()
+    if existing_user_update:
+        existing_user_update.name = user.name
+        existing_user_update.age = user.age
+        existing_user_update.city = user.city
+        existing_user_update.email = user.email
+        existing_user_update.preferences = str(user.preferences)
         db.commit()
-        db.refresh(existing_user)
+        db.refresh(existing_user_update)
         return {
-            'id': existing_user.id,
-            'name': existing_user.name,
-            'message': f"User {existing_user.name} updated successfully!"      
+            'id': existing_user_update.id,
+            'name': existing_user_update.name,
+            'message': f"User {existing_user_update.name} updated successfully!"      
         }
     else:
         raise HTTPException(status_code=404, detail="User not found")
     
 @app.delete("/user/{user_id}")
 def delete_user(user_id: int, db: SessionLocal = Depends(get_db)):
-    existing_user = db.query(User).filter(User.id == user_id).first()
-    if existing_user:
-        db.delete(existing_user)
+    existing_user_delete = db.query(User).filter(User.id == user_id).first()
+    if existing_user_delete:
+        db.delete(existing_user_delete)
         db.commit()
         return{
             'message': f"User account has been deleted"
@@ -130,6 +130,7 @@ def create_trip(trip: TripRequest, user_id: int, db: SessionLocal = Depends(get_
         db.commit()
         db.refresh(user_trips)
         return {
+            'id': user_trips.id,
             "destination": trip.destination,
             "budget_amount": trip.budget_amount,
             "budget_currency": trip.budget_currency,
@@ -151,8 +152,14 @@ def get_trips(user_id: int, db: SessionLocal = Depends(get_db)):
         return [
             {
                 "id": trip.id,
-                "destination": trip.destination,
+                "budget_amount": trip.budget_amount,
+                "budget_currency": trip.budget_currency,
                 "duration": trip.duration,
+                "cities": trip.cities,
+                "activities": trip.activities,
+                "group_size": trip.group_size,
+                "transportation": trip.transportation,
+                "notes": trip.notes,
                 "status": trip.status,
                 "created_at": str(trip.created_at)
             }
@@ -160,3 +167,40 @@ def get_trips(user_id: int, db: SessionLocal = Depends(get_db)):
         ]
     else:
         raise HTTPException(status_code=404, detail="No trips found")
+
+@app.put("/users/{user_id}/trips/{trip_id}")
+def update_trip(trip: TripRequest, user_id: int, trip_id: int, db: SessionLocal = Depends(get_db)):
+    existing_trip_update = db.query(Trip).filter(Trip.id == trip_id, Trip.user_id == user_id).first()
+    if existing_trip_update:
+        existing_trip_update.destination = trip.destination
+        existing_trip_update.budget_amount = trip.budget_amount
+        existing_trip_update.budget_currency = trip.budget_currency
+        existing_trip_update.duration = trip.duration
+        existing_trip_update.cities = trip.cities
+        existing_trip_update.activities = trip.activities
+        existing_trip_update.group_size = trip.group_size
+        existing_trip_update.travelers = trip.travelers
+        existing_trip_update.transportation = trip.transportation
+        existing_trip_update.notes = trip.notes
+        db.commit()
+        db.refresh(existing_trip_update)
+        return{
+            "id": existing_trip_update.id,
+            "message": f"Trip to {existing_trip_update.destination} has been updated"
+        }
+    else:
+        raise HTTPException(status_code=404, detail="No trips found")
+
+
+
+@app.delete("/users/{user_id}/trips/{trip_id}")
+def delete_trips(user_id: int, trip_id: int, db: SessionLocal = Depends(get_db)):
+    existing_trip_delete = db.query(Trip).filter(Trip.id == trip_id, Trip.user_id == user_id).first()
+    if existing_trip_delete:
+        db.delete(existing_trip_delete)
+        db.commit()
+        return{
+            'message': f"Trip has been deleted"
+        }
+    else:
+        raise HTTPException(status_code=404, detail="Trip not found")
