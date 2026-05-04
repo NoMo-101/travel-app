@@ -39,7 +39,7 @@ class UserProfile(BaseModel):
 
 @app.get("/")
 def root():
-    return {"message": "Trip Planner API is alive 🌍"}
+    return {"message": "Trip Planner API is alive and kicking!!!"}
 
 @app.get("/health")
 def health():
