@@ -45,6 +45,8 @@ def root():
 def health():
     return {"status": "ok"}
 
+
+# This endpoint creates the user's account
 @app.post("/users/create")
 def create_user(user: UserProfile, db: SessionLocal = Depends(get_db)):
     db_user = User(
@@ -63,6 +65,9 @@ def create_user(user: UserProfile, db: SessionLocal = Depends(get_db)):
         'message': f"User {db_user.name} created successfully!"      
     }
 
+# This endpoint finds and identfies 
+# the user by using their ID and outputing 
+# the user's information and returns a error if User not found
 @app.get("/users/{user_id}")
 def get_user(user_id: int, db: SessionLocal = Depends(get_db)):
     user = db.query(User).filter(User.id == user_id).first()
@@ -78,7 +83,9 @@ def get_user(user_id: int, db: SessionLocal = Depends(get_db)):
     else:
         raise HTTPException(status_code=404, detail="User not found")
 
-@app.put("/users/{update}")
+# This endpoint updates the user's account information 
+# and returns and error if User not found
+@app.put("/users/{user_id}")
 def update_user(user_id: int, user: UserProfile, db: SessionLocal = Depends(get_db)):
     existing_user_update = db.query(User).filter(User.id == user_id).first()
     if existing_user_update:
@@ -96,8 +103,10 @@ def update_user(user_id: int, user: UserProfile, db: SessionLocal = Depends(get_
         }
     else:
         raise HTTPException(status_code=404, detail="User not found")
-    
-@app.delete("/user/{user_id}")
+
+# This endpoint deletes the user account infomation
+# and returns and error if User not found    
+@app.delete("/users/{user_id}")
 def delete_user(user_id: int, db: SessionLocal = Depends(get_db)):
     existing_user_delete = db.query(User).filter(User.id == user_id).first()
     if existing_user_delete:
@@ -108,7 +117,8 @@ def delete_user(user_id: int, db: SessionLocal = Depends(get_db)):
         }
     else:
         raise HTTPException(status_code=404, detail="User not found")
-    
+
+# This endpoint creates the trips for the user    
 @app.post("/users/{user_id}/trips")
 def create_trip(trip: TripRequest, user_id: int, db: SessionLocal = Depends(get_db)):
     user = db.query(User).filter(User.id == user_id).first()
@@ -144,7 +154,9 @@ def create_trip(trip: TripRequest, user_id: int, db: SessionLocal = Depends(get_
         }
     else:
         raise HTTPException(status_code=404, detail="User not found")
-    
+
+# This endpoint finds/gets all the user's trips
+# and returns and error if not trips are found    
 @app.get("/users/{user_id}/trips")
 def get_trips(user_id: int, db: SessionLocal = Depends(get_db)):
     trips = db.query(Trip).filter(Trip.user_id == user_id).all()
@@ -168,11 +180,13 @@ def get_trips(user_id: int, db: SessionLocal = Depends(get_db)):
     else:
         raise HTTPException(status_code=404, detail="No trips found")
 
+# This endpoint updates the user's trips 
+# returns and error if not trips are found
 @app.put("/users/{user_id}/trips/{trip_id}")
 def update_trip(trip: TripRequest, user_id: int, trip_id: int, db: SessionLocal = Depends(get_db)):
     existing_trip_update = db.query(Trip).filter(Trip.id == trip_id, Trip.user_id == user_id).first()
     if existing_trip_update:
-        existing_trip_update.destination = trip.destination
+        existing_trip_update.destination = trip.destination 
         existing_trip_update.budget_amount = trip.budget_amount
         existing_trip_update.budget_currency = trip.budget_currency
         existing_trip_update.duration = trip.duration
@@ -191,8 +205,8 @@ def update_trip(trip: TripRequest, user_id: int, trip_id: int, db: SessionLocal 
     else:
         raise HTTPException(status_code=404, detail="No trips found")
 
-
-
+# This endpoint deletes the trip infomration of a singular trips
+# returns and error if not trips are found
 @app.delete("/users/{user_id}/trips/{trip_id}")
 def delete_trips(user_id: int, trip_id: int, db: SessionLocal = Depends(get_db)):
     existing_trip_delete = db.query(Trip).filter(Trip.id == trip_id, Trip.user_id == user_id).first()
@@ -201,6 +215,21 @@ def delete_trips(user_id: int, trip_id: int, db: SessionLocal = Depends(get_db))
         db.commit()
         return{
             'message': f"Trip has been deleted"
+        }
+    else:
+        raise HTTPException(status_code=404, detail="Trip not found")
+
+# This endpoint deletes all trips for the user
+# returns and error if not trips are found
+@app.delete("/users/{user_id}/trips")
+def all_delete_trips(user_id: int, db: SessionLocal = Depends(get_db)):
+    all_existing_trips = db.query(Trip).filter(Trip.user_id == user_id).all()
+    if all_existing_trips:
+        for trip in all_existing_trips:
+            db.delete(trip)
+        db.commit()
+        return{
+            'message': f"All trips have been deleted"
         }
     else:
         raise HTTPException(status_code=404, detail="Trip not found")
