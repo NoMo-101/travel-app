@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from typing import Optional
 from database import SessionLocal, Base, engine
 from models import User, Trip
+from ai import generate_trip_plan
 
 
 
@@ -139,17 +140,14 @@ def create_trip(trip: TripRequest, user_id: int, db: SessionLocal = Depends(get_
         db.add(user_trips)
         db.commit()
         db.refresh(user_trips)
+
+        past_trips = db.query(Trip).filter(Trip.user_id == user_id).all()
+
+        trip_plan = generate_trip_plan(user, user_trips, past_trips)
+
         return {
             'id': user_trips.id,
-            "destination": trip.destination,
-            "budget_amount": trip.budget_amount,
-            "budget_currency": trip.budget_currency,
-            "duration": trip.duration,
-            "cities": trip.cities,
-            "activities": trip.activities,
-            "group_size": trip.group_size,
-            "transportation": trip.transportation,
-            "notes": trip.notes,
+            'plan': trip_plan,
             "message": f"Planning your {trip.duration} day trip to {trip.destination}!"
         }
     else:
