@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Depends, HTTPException
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
 from typing import Optional
 from database import SessionLocal, Base, engine
 from models import User, Trip
@@ -49,7 +50,7 @@ def health():
 
 # This endpoint creates the user's account
 @app.post("/users/create")
-def create_user(user: UserProfile, db: SessionLocal = Depends(get_db)):
+def create_user(user: UserProfile, db: Session = Depends(get_db)):
     db_user = User(
         name = user.name,
         age = user.age,
@@ -70,7 +71,7 @@ def create_user(user: UserProfile, db: SessionLocal = Depends(get_db)):
 # the user by using their ID and outputing 
 # the user's information and returns a error if User not found
 @app.get("/users/{user_id}")
-def get_user(user_id: int, db: SessionLocal = Depends(get_db)):
+def get_user(user_id: int, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.id == user_id).first()
     if user:
         return {
@@ -87,7 +88,7 @@ def get_user(user_id: int, db: SessionLocal = Depends(get_db)):
 # This endpoint updates the user's account information 
 # and returns and error if User not found
 @app.put("/users/{user_id}")
-def update_user(user_id: int, user: UserProfile, db: SessionLocal = Depends(get_db)):
+def update_user(user_id: int, user: UserProfile, db: Session = Depends(get_db)):
     existing_user_update = db.query(User).filter(User.id == user_id).first()
     if existing_user_update:
         existing_user_update.name = user.name
@@ -108,7 +109,7 @@ def update_user(user_id: int, user: UserProfile, db: SessionLocal = Depends(get_
 # This endpoint deletes the user account infomation
 # and returns and error if User not found    
 @app.delete("/users/{user_id}")
-def delete_user(user_id: int, db: SessionLocal = Depends(get_db)):
+def delete_user(user_id: int, db: Session = Depends(get_db)):
     existing_user_delete = db.query(User).filter(User.id == user_id).first()
     if existing_user_delete:
         db.delete(existing_user_delete)
@@ -121,7 +122,7 @@ def delete_user(user_id: int, db: SessionLocal = Depends(get_db)):
 
 # This endpoint creates the trips for the user    
 @app.post("/users/{user_id}/trips")
-def create_trip(trip: TripRequest, user_id: int, db: SessionLocal = Depends(get_db)):
+def create_trip(trip: TripRequest, user_id: int, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.id == user_id).first()
     if user:
         user_trips = Trip(
@@ -156,7 +157,7 @@ def create_trip(trip: TripRequest, user_id: int, db: SessionLocal = Depends(get_
 # This endpoint finds/gets all the user's trips
 # and returns and error if not trips are found    
 @app.get("/users/{user_id}/trips")
-def get_trips(user_id: int, db: SessionLocal = Depends(get_db)):
+def get_trips(user_id: int, db: Session = Depends(get_db)):
     trips = db.query(Trip).filter(Trip.user_id == user_id).all()
     if trips:
         return [
@@ -181,7 +182,7 @@ def get_trips(user_id: int, db: SessionLocal = Depends(get_db)):
 # This endpoint updates the user's trips 
 # returns and error if not trips are found
 @app.put("/users/{user_id}/trips/{trip_id}")
-def update_trip(trip: TripRequest, user_id: int, trip_id: int, db: SessionLocal = Depends(get_db)):
+def update_trip(trip: TripRequest, user_id: int, trip_id: int, db: Session = Depends(get_db)):
     existing_trip_update = db.query(Trip).filter(Trip.id == trip_id, Trip.user_id == user_id).first()
     if existing_trip_update:
         existing_trip_update.destination = trip.destination 
@@ -206,7 +207,7 @@ def update_trip(trip: TripRequest, user_id: int, trip_id: int, db: SessionLocal 
 # This endpoint deletes the trip infomration of a singular trips
 # returns and error if not trips are found
 @app.delete("/users/{user_id}/trips/{trip_id}")
-def delete_trips(user_id: int, trip_id: int, db: SessionLocal = Depends(get_db)):
+def delete_trips(user_id: int, trip_id: int, db: Session = Depends(get_db)):
     existing_trip_delete = db.query(Trip).filter(Trip.id == trip_id, Trip.user_id == user_id).first()
     if existing_trip_delete:
         db.delete(existing_trip_delete)
@@ -220,7 +221,7 @@ def delete_trips(user_id: int, trip_id: int, db: SessionLocal = Depends(get_db))
 # This endpoint deletes all trips for the user
 # returns and error if not trips are found
 @app.delete("/users/{user_id}/trips")
-def all_delete_trips(user_id: int, db: SessionLocal = Depends(get_db)):
+def all_delete_trips(user_id: int, db: Session = Depends(get_db)):
     all_existing_trips = db.query(Trip).filter(Trip.user_id == user_id).all()
     if all_existing_trips:
         for trip in all_existing_trips:
