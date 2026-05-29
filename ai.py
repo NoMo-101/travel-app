@@ -38,3 +38,21 @@ def generate_trip_plan (user, trip, past_trips):
     )
 
     return response.choices[0].message.content
+
+def generate_ai_notes(trip):
+    prompt = f"""
+    Based on this completed trip review, 
+    write a short summary of what you learned about 
+    this user's travel preferences and style. 
+    This will be used to personalize future trip recommendations. 
+    User Travel Style: {trip.travel_style}
+    Trip Pain Points: {trip.pain_points}
+    Trip Highlights: {trip.highlights}
+    Trip Rating: {trip.rating}
+    """
+    response = client.chat.completions.create(
+        model = "gpt-3.5-turbo",
+        messages = [{"role": "user", "content": prompt}]
+    )
+
+    return response.choices[0].message.content

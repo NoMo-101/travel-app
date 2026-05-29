@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from typing import Optional
 from database import SessionLocal, Base, engine
 from models import User, Trip
-from ai import generate_trip_plan
+from ai import generate_trip_plan, generate_ai_notes
 
 
 
@@ -38,6 +38,12 @@ class UserProfile(BaseModel):
     city: str
     email: Optional[str] = None
     preferences: dict
+
+class TripReview(BaseModel):
+    travel_style: str
+    pain_points: str
+    highlights: str
+    rating: float
 
 @app.get("/")
 def root():
@@ -232,3 +238,23 @@ def all_delete_trips(user_id: int, db: Session = Depends(get_db)):
         }
     else:
         raise HTTPException(status_code=404, detail="Trip not found")
+    
+@app.post("/users/{user_id}/trips/{trip_id}/review")
+def update_ai(user_id: int, trip_id: int, review: TripReview, db: Session = Depends(get_db)):
+    existing_trip_ai = db.query(Trip).filter(Trip.id == trip_id, Trip.user_id == user_id). first()
+    if existing_trip_ai:
+        existing_trip_ai.travel_style = review.travel_style
+        existing_trip_ai.pain_points = review.pain_points
+        existing_trip_ai.highlights = review.highlights
+        existing_trip_ai.rating = review.rating
+        existing_trip_ai.ai_notes = generate_ai_notes(existing_trip_ai)
+        db.commit()
+        db.refresh(existing_trip_ai)
+        return{
+            'message': f"Commited to memory"
+        }
+    else:
+        raise HTTPException(status_code=404, detail="Trip not found can not commit to memory")
+
+
+        
