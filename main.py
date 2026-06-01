@@ -32,13 +32,17 @@ class TripRequest(BaseModel):
     transportation: Optional[str] = None
     notes: Optional[str] = None
 
-
 class UserProfile(BaseModel):
     name: str
     age: int
     city: str
     email: Optional[str] = None
     preferences: dict
+
+class UserRegister(BaseModel):
+    name: str
+    email: str
+    password: str
 
 class TripReview(BaseModel):
     travel_style: str
@@ -257,5 +261,9 @@ def update_ai(user_id: int, trip_id: int, review: TripReview, db: Session = Depe
     else:
         raise HTTPException(status_code=404, detail="Trip not found can not commit to memory")
 
-
-        
+@app.post("/auth/ register")
+def user_register(user: UserRegister, db: Session = Depends(get_db)):
+    existing_user_register = db.query(User).filter(User.email == user.email).first()
+    if existing_user_register:
+        raise HTTPException(status_code = 400, detail = "Email already registered")
+    hashed = hash_password(user.password)
