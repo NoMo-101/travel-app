@@ -1,6 +1,7 @@
 services:
   db:
     image: postgres:16
+    container_name: tripplanner_db
     environment:
       POSTGRES_DB: tripplanner
       POSTGRES_USER: tripuser

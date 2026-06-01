@@ -73,8 +73,8 @@ def create_user(user: UserProfile, db: Session = Depends(get_db)):
         'message': f"User {db_user.name} created successfully!"      
     }
 
-# This endpoint finds and identfies 
-# the user by using their ID and outputing 
+# This endpoint finds and identifies 
+# the user by using their ID and outputs
 # the user's information and returns a error if User not found
 @app.get("/users/{user_id}")
 def get_user(user_id: int, db: Session = Depends(get_db)):
@@ -112,7 +112,7 @@ def update_user(user_id: int, user: UserProfile, db: Session = Depends(get_db)):
     else:
         raise HTTPException(status_code=404, detail="User not found")
 
-# This endpoint deletes the user account infomation
+# This endpoint deletes the user account information
 # and returns and error if User not found    
 @app.delete("/users/{user_id}")
 def delete_user(user_id: int, db: Session = Depends(get_db)):
@@ -210,7 +210,7 @@ def update_trip(trip: TripRequest, user_id: int, trip_id: int, db: Session = Dep
     else:
         raise HTTPException(status_code=404, detail="No trips found")
 
-# This endpoint deletes the trip infomration of a singular trips
+# This endpoint deletes the trip information of a singular trips
 # returns and error if not trips are found
 @app.delete("/users/{user_id}/trips/{trip_id}")
 def delete_trips(user_id: int, trip_id: int, db: Session = Depends(get_db)):
@@ -251,7 +251,7 @@ def update_ai(user_id: int, trip_id: int, review: TripReview, db: Session = Depe
         db.commit()
         db.refresh(existing_trip_ai)
         return{
-            'message': f"Commited to memory"
+            'message': f"Committed to memory"
         }
     else:
         raise HTTPException(status_code=404, detail="Trip not found can not commit to memory")

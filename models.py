@@ -11,6 +11,7 @@ class User(Base):
     city = Column(String)
     email = Column(String, unique=True, index=True)
     preferences = Column(String)  # Store as JSON string for simplicity
+    password = Column(String)
 
 class Trip(Base):
     __tablename__ = 'trips'
