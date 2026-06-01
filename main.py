@@ -5,6 +5,7 @@ from typing import Optional
 from database import SessionLocal, Base, engine
 from models import User, Trip
 from ai import generate_trip_plan, generate_ai_notes
+from auth import hash_password, verify_password, create_access_token, verify_access_token
 
 
 
